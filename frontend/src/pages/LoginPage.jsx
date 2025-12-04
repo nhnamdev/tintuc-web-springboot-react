@@ -34,6 +34,9 @@ function LoginPage() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
       });
 
       if (error) throw error;
@@ -99,6 +102,7 @@ function LoginPage() {
             </button>
           </form>
 
+          {/* Google OAuth */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -111,7 +115,8 @@ function LoginPage() {
 
             <button
               onClick={handleGoogleLogin}
-              className="mt-4 w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 font-medium"
+              type="button"
+              className="mt-4 w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 font-medium transition-colors"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
