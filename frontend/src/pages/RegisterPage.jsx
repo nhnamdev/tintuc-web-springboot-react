@@ -1,34 +1,53 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+function RegisterPage() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: '',
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    // Validate
+    if (formData.password !== formData.confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Sign up with Supabase Auth
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+          },
+        },
       });
 
-      if (error) {
-        // Handle email not confirmed error
-        if (error.message.includes('Email not confirmed')) {
-          throw new Error('Email chưa được xác thực. Vui lòng kiểm tra email hoặc liên hệ admin để kích hoạt tài khoản.');
-        }
-        throw error;
-      }
+      if (signUpError) throw signUpError;
 
-      // Redirect to home
-      window.location.href = '/';
+      // Show success message
+      alert('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');
+      navigate('/login');
     } catch (error) {
       setError(error.message);
     } finally {
@@ -36,7 +55,7 @@ function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignUp = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -59,10 +78,10 @@ function LoginPage() {
           <Link to="/" className="text-4xl font-bold text-primary-700">
             Dân Trí
           </Link>
-          <p className="text-gray-600 mt-2">Đăng nhập để tiếp tục</p>
+          <p className="text-gray-600 mt-2">Tạo tài khoản mới</p>
         </div>
 
-        {/* Login Form */}
+        {/* Register Form */}
         <div className="bg-white rounded-lg shadow-md p-8">
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
@@ -70,15 +89,29 @@ function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Họ và tên
+              </label>
+              <input
+                type="text"
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="Nguyễn Văn A"
+                required
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="email@example.com"
                 required
@@ -91,11 +124,28 @@ function LoginPage() {
               </label>
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="••••••••"
                 required
+                minLength={6}
+              />
+              <p className="text-xs text-gray-500 mt-1">Tối thiểu 6 ký tự</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Xác nhận mật khẩu
+              </label>
+              <input
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="••••••••"
+                required
+                minLength={6}
               />
             </div>
 
@@ -104,11 +154,11 @@ function LoginPage() {
               disabled={loading}
               className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
-              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+              {loading ? 'Đang đăng ký...' : '📝 Đăng ký'}
             </button>
           </form>
 
-          {/* Google OAuth */}
+          {/* Google Sign Up */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -120,7 +170,7 @@ function LoginPage() {
             </div>
 
             <button
-              onClick={handleGoogleLogin}
+              onClick={handleGoogleSignUp}
               type="button"
               className="mt-4 w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 font-medium transition-colors"
             >
@@ -142,14 +192,14 @@ function LoginPage() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Đăng nhập với Google
+              Đăng ký với Google
             </button>
           </div>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-gray-600">Chưa có tài khoản? </span>
-            <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-              Đăng ký ngay
+            <span className="text-gray-600">Đã có tài khoản? </span>
+            <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
+              Đăng nhập ngay
             </Link>
           </div>
         </div>
@@ -164,4 +214,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default RegisterPage;

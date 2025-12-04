@@ -3,7 +3,9 @@ import HomePage from './pages/HomePage';
 import ArticlePage from './pages/ArticlePage';
 import CategoryPage from './pages/CategoryPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
+import BookmarksPage from './pages/BookmarksPage';
 
 function App() {
   return (
@@ -14,7 +16,9 @@ function App() {
           <Route path="/article/:slug" element={<ArticlePage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/bookmarks" element={<BookmarksPage />} />
         </Routes>
       </div>
     </Router>
