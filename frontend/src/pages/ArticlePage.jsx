@@ -76,10 +76,9 @@ function ArticlePage() {
           .from('bookmarks')
           .select('id')
           .eq('user_id', user.id)
-          .eq('article_id', articleData.id)
-          .single();
+          .eq('article_id', articleData.id);
 
-        setIsBookmarked(!!bookmarkData);
+        setIsBookmarked(bookmarkData && bookmarkData.length > 0);
       }
     } catch (error) {
       console.error('Error fetching article:', error);
@@ -96,21 +95,44 @@ function ArticlePage() {
 
     try {
       if (isBookmarked) {
-        await supabase
+        // Remove bookmark
+        const { error } = await supabase
           .from('bookmarks')
           .delete()
           .eq('user_id', user.id)
           .eq('article_id', article.id);
+
+        if (error) throw error;
         setIsBookmarked(false);
+        alert('Đã bỏ lưu bài viết');
       } else {
-        await supabase.from('bookmarks').insert({
+        // Check if bookmark already exists
+        const { data: existingBookmark } = await supabase
+          .from('bookmarks')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('article_id', article.id);
+
+        if (existingBookmark && existingBookmark.length > 0) {
+          // Already bookmarked, just update state
+          setIsBookmarked(true);
+          alert('Bài viết đã được lưu trước đó');
+          return;
+        }
+
+        // Add bookmark
+        const { error } = await supabase.from('bookmarks').insert({
           user_id: user.id,
           article_id: article.id,
         });
+
+        if (error) throw error;
         setIsBookmarked(true);
+        alert('Đã lưu bài viết');
       }
     } catch (error) {
       console.error('Error toggling bookmark:', error);
+      alert('Có lỗi xảy ra khi lưu bài viết');
     }
   };
 
