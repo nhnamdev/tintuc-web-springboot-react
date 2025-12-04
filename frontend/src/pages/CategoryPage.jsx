@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 
@@ -91,9 +91,10 @@ function CategoryPage() {
         {articles.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {articles.map((article) => (
-              <article
+              <Link
                 key={article.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                to={`/article/${article.slug}`}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow block"
               >
                 {article.thumbnail_url && (
                   <img
@@ -105,7 +106,7 @@ function CategoryPage() {
                 <div className="p-4">
                   {article.is_breaking_news && (
                     <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-600 rounded mb-2">
-                      🔥 TIN NÓ NG
+                      🔥 TIN NÓNG
                     </span>
                   )}
                   {article.is_featured && !article.is_breaking_news && (
@@ -138,7 +139,7 @@ function CategoryPage() {
                     </div>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         ) : (
